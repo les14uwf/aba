@@ -37,6 +37,7 @@ css: |
 #install.packages("dplyr")    
 #library(devtools)
 #install.packages("devtools")
+#install.packages("patchwork")
 
 library(dplyr)  
 library(bayesrules)
@@ -44,12 +45,13 @@ library(tidyverse)
 library(haven)      
 library(tinytex)      
 library(ggpubr)   
+library(patchwork)
 ```
 
 
 ## Assignment 3
 
-Authors: Jonathan Ashback, Kelly Lake, Audrey Moore, Laura Sikes, Tommy Steele, & Ecil Teodoro<br>
+Authors: Jonathan Ashbeck, Kelly Lake, Audrey Moore, Laura Sikes, Tommy Steele, & Ecil Teodoro<br>
 Class: STA6349 <br>
 Group: 1 <br>
 Instructor: Dr. Samantha Seals <br>
@@ -182,4 +184,81 @@ plot_gamma_poisson(shape = alpha_all,
 
 ## Comparison of All Posteriors Derived
 
-NEED ANALYSES HERE
+Since each subgroup did not use the same prior for their respective models, we did not expect to see the same result for finding the posterior for all data versus the two separate chunks of time.
+
+```{r}
+library(patchwork)
+
+
+# Combine the three plots
+# Plot 1: 1981-1999
+plot1 <- plot_gamma_poisson(shape = 3,
+                            rate = 0.75,
+                            sum_y = 15,
+                            n = 19,
+                            prior = TRUE,
+                            likelihood = TRUE,
+                            posterior = TRUE) +
+  theme_bw() +
+  ggtitle("1981-1999") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Plot 2: 2000-2017
+plot2 <- plot_gamma_poisson(shape = 10,
+                            rate = 1,
+                            sum_y = sum_count_eagles_00_17,
+                            n = observations_00_17,
+                            prior = TRUE,
+                            likelihood = TRUE,
+                            posterior = TRUE) +
+  theme_bw() +
+  ggtitle("2000-2017") +
+  theme(plot.title = element_text(hjust = 0.5))
+```
+
+```{r}
+# Plot 3: All Years (1981-2017)
+plot3 <- plot_gamma_poisson(shape = alpha_all,
+                            rate = beta_all,
+                            sum_y = sum_count_eagles_all,
+                            n = observations_eagles_all,
+                            prior = TRUE,
+                            likelihood = TRUE,
+                            posterior = TRUE) +
+  theme_bw() +
+  ggtitle("All Years (1981-2017)") +
+  theme(plot.title = element_text(hjust = 0.5))
+
+# Compute posterior parameters to determine x-axis limits
+post_shape_81_99 <- 3 + 15
+post_rate_81_99 <- 0.75 + 19
+
+post_shape_00_17 <- 10 + sum_count_eagles_00_17
+post_rate_00_17 <- 1 + observations_00_17
+
+post_shape_all <- alpha_all + sum_count_eagles_all
+post_rate_all <- beta_all + observations_eagles_all
+
+# Compute 99th percentile for each posterior
+xlim_81_99 <- qgamma(0.99, shape = post_shape_81_99, rate = post_rate_81_99)
+xlim_00_17 <- qgamma(0.99, shape = post_shape_00_17, rate = post_rate_00_17)
+xlim_all <- qgamma(0.99, shape = post_shape_all, rate = post_rate_all)
+
+# Set common x-axis limits, ensuring the upper limit is at least 20
+xlim_max <- max(xlim_81_99, xlim_00_17, xlim_all)
+xlim_upper <- max(ceiling(xlim_max), 20)  # Ensure at least 20
+xlim_common <- c(0, xlim_upper)
+
+# Update plots with common x-axis limits
+plot1 <- plot1 + coord_cartesian(xlim = xlim_common)
+plot2 <- plot2 + coord_cartesian(xlim = xlim_common)
+plot3 <- plot3 + coord_cartesian(xlim = xlim_common)
+
+# Stack the plots vertically
+combined_plot <- plot1 / plot2 / plot3
+
+# Display the combined plot
+combined_plot
+```
+
+
