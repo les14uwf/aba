@@ -105,18 +105,19 @@ ggplot(bald_eagles, aes(x = year)) +
 ```
 
 ## Posterior for 1981 - 1999
+Expected Values Based on [World Wildlife Fund](www.bit.ly/1EqAdIp): ~4 sightings per year, ranging from 0 to 12.
 
-**Expected Values Based on [World Wildlife Fund](www.bit.ly/1EqAdIp):**
+$y_i | \lambda \sim \text{Poi}(4)$
+$E[\lambda] = s/r \approx 4 \implies s = 4r$
 
-* ~4 sightings/year (range: 0-12)
-* $y_i | \lambda \sim \text{Poi}(4)$
+Choosing the Prior: $\lambda \sim \text{Gamma}(3, 0.75)$
 
-**Prior:**
+Deriving the Posterior: $\lambda | \vec{y} \sim \text{Gamma}(18, 19.75)$
 
-* $E[\lambda] = s/r \approx 4 \implies s = 4r$
-* Chosen: $Gamma(3, 0.75)$ (best matches mean/range)
+```{r}
+plot_gamma_poisson(shape=3, rate = 0.75, sum_y = 15, n = 19) + theme_bw()
+```
 
-<img src="https://les14uwf.github.io/notsure/abag1.PNG">
 
 ## Posterior for 2000 - 2017
 
@@ -184,7 +185,7 @@ plot_gamma_poisson(shape = alpha_all,
 
 ## Comparison of All Posteriors Derived
 
-Since each subgroup did not use the same prior for their respective models, we did not expect to see the same result for finding the posterior for all data versus the two separate chunks of time.
+Since each subgroup did not use the same prior for their respective models, we did not expect to see the same result for finding the posterior for all data versus the two separate chunks of time.  
 
 ```{r}
 library(patchwork)
